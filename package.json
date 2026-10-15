@@ -1,0 +1,15 @@
+{
+  "name": "painel-financeiro-pessoal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Painel financeiro pessoal (somente leitura) - HTML + Vercel + Supabase",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

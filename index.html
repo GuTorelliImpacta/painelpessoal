@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light dark">
+  <title>Painel financeiro</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 22l5-6 4 3 7-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/styles.css?v=1">
+  <script src="/assets/tema.js?v=1"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script defer src="/assets/metricas.js?v=1"></script>
+  <script defer src="/assets/demo.js?v=1"></script>
+  <script defer src="/assets/graficos.js?v=1"></script>
+  <script defer src="/assets/app.js?v=1"></script>
+</head>
+<body>
+  <a class="pular" href="#principal">Ir para o conteúdo</a>
+  <div id="faixa-demo" class="faixa-demo" role="status" hidden>Dados fictícios</div>
+
+  <!-- Login -->
+  <main id="login" class="login" hidden>
+    <form id="form-login" class="card login-card" autocomplete="on">
+      <div class="marca marca-grande" aria-hidden="true">◈</div>
+      <h1>Painel financeiro</h1>
+      <p class="muted">Acesso restrito. Digite a senha para continuar.</p>
+      <label for="senha">Senha</label>
+      <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+      <p id="erro-login" class="erro-msg" role="alert" hidden></p>
+      <button id="btn-entrar" class="btn btn-primario" type="submit">Entrar</button>
+    </form>
+  </main>
+
+  <!-- Painel -->
+  <div id="app" hidden>
+    <header class="topo">
+      <div class="topo-in">
+        <div class="topo-linha">
+          <div class="marca-wrap"><span class="marca" aria-hidden="true">◈</span><strong>Painel financeiro</strong></div>
+          <div class="acoes">
+            <button id="btn-privacidade" class="btn-icone" type="button" aria-pressed="false" aria-label="Ocultar valores" title="Ocultar valores">👁</button>
+            <button id="btn-tema" class="btn-icone" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">🌓</button>
+          </div>
+        </div>
+        <div class="filtro" role="group" aria-label="Filtro de período">
+          <button id="mes-ant" class="btn-icone" type="button" aria-label="Mês anterior">‹</button>
+          <div class="filtro-centro">
+            <label class="sr-only" for="periodo">Período</label>
+            <select id="periodo">
+              <option value="este_mes">Este mês</option>
+              <option value="mes_passado">Mês passado</option>
+              <option value="mes_x" hidden disabled>Mês</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m">Últimos 12 meses</option>
+              <option value="ano">Este ano</option>
+              <option value="tudo">Tudo</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+          <button id="mes-prox" class="btn-icone" type="button" aria-label="Próximo mês">›</button>
+        </div>
+        <div id="custom" class="custom" hidden>
+          <label>De <input id="ini" type="date"></label>
+          <label>Até <input id="fim" type="date"></label>
+        </div>
+        <p id="periodo-info" class="periodo-info muted" aria-live="polite"></p>
+      </div>
+    </header>
+
+    <main id="principal" class="wrap" tabindex="-1">
+      <!-- carregando -->
+      <div id="skeleton" class="grid" aria-hidden="true" hidden>
+        <div class="card sk col-12 sk-hero"></div>
+        <div class="card sk col-4"></div><div class="card sk col-4"></div><div class="card sk col-4"></div>
+        <div class="card sk col-6 sk-tall"></div><div class="card sk col-6 sk-tall"></div>
+      </div>
+
+      <!-- erro -->
+      <section id="erro" class="card estado" hidden>
+        <h2>Não consegui carregar os dados</h2>
+        <p id="erro-texto" class="muted">Verifique sua conexão e tente novamente.</p>
+        <button id="btn-retry" class="btn btn-primario" type="button">Tentar de novo</button>
+      </section>
+
+      <div id="conteudo" hidden>
+        <!-- Saldo + KPIs -->
+        <section class="card hero" aria-labelledby="t-saldo">
+          <h2 id="t-saldo" class="rotulo">Saldo atual</h2>
+          <p class="hero-valor"><span id="kpi-saldo" class="valor num"></span></p>
+          <p class="muted hero-sub">Soma de todas as transações, independente do período</p>
+        </section>
+
+        <section class="grid kpis" aria-label="Indicadores do período">
+          <article class="card kpi col-4" id="card-entradas"><h3 class="rotulo">Entradas</h3><p class="kpi-valor"><span id="kpi-entradas" class="valor num"></span></p><p id="kpi-entradas-var" class="var"></p></article>
+          <article class="card kpi col-4" id="card-saidas"><h3 class="rotulo">Saídas</h3><p class="kpi-valor"><span id="kpi-saidas" class="valor num"></span></p><p id="kpi-saidas-var" class="var"></p></article>
+          <article class="card kpi col-4" id="card-resultado"><h3 class="rotulo">Resultado</h3><p class="kpi-valor"><span id="kpi-resultado" class="valor num"></span></p><p id="kpi-resultado-sub" class="var muted"></p></article>
+          <article class="card kpi col-6" id="card-poupanca"><h3 class="rotulo">Taxa de poupança</h3><p class="kpi-valor"><span id="kpi-poupanca" class="num"></span></p><p id="kpi-poupanca-sub" class="var"></p></article>
+          <article class="card kpi col-6" id="card-projecao"><h3 class="rotulo">Projeção do mês</h3><p class="kpi-valor"><span id="kpi-projecao" class="valor num"></span></p><p id="kpi-projecao-sub" class="var"></p></article>
+        </section>
+
+        <section class="grid mini" aria-label="Indicadores secundários">
+          <div class="card mini-card"><span class="rotulo">Gasto médio diário</span><strong id="m-burn" class="valor num"></strong></div>
+          <div class="card mini-card"><span class="rotulo">Fôlego financeiro</span><strong id="m-folego" class="num"></strong><small id="m-folego-sub" class="muted"></small></div>
+          <div class="card mini-card"><span class="rotulo">Ticket médio (saída)</span><strong id="m-ticket" class="valor num"></strong></div>
+          <div class="card mini-card"><span class="rotulo">Transações</span><strong id="m-qtd" class="num"></strong></div>
+          <div class="card mini-card"><span class="rotulo">Maior gasto</span><strong id="m-maior" class="valor num"></strong><small id="m-maior-sub" class="muted"></small></div>
+          <div class="card mini-card"><span class="rotulo">Dias sem gastos</span><strong id="m-dias" class="num"></strong><small id="m-dias-sub" class="muted"></small></div>
+          <div class="card mini-card"><span class="rotulo">Top 3 categorias</span><strong id="m-top3" class="num"></strong><small class="muted">das saídas</small></div>
+          <div class="card mini-card"><span class="rotulo">Mais cresceu</span><strong id="m-cresceu" class="num"></strong><small id="m-cresceu-sub" class="muted valor"></small></div>
+          <div class="card mini-card"><span class="rotulo">Mais caiu</span><strong id="m-caiu" class="num"></strong><small id="m-caiu-sub" class="muted valor"></small></div>
+        </section>
+
+        <!-- Insights -->
+        <section class="card" aria-labelledby="t-insights">
+          <h2 id="t-insights">Insights</h2>
+          <ul id="insights" class="insights"></ul>
+        </section>
+
+        <!-- Gráficos -->
+        <div id="graficos">
+          <section class="card" aria-labelledby="t-saldo-evol">
+            <h2 id="t-saldo-evol">Evolução do saldo</h2>
+            <div class="chart-wrap"><canvas id="g-saldo" role="img" aria-label="Evolução do saldo"></canvas></div>
+          </section>
+
+          <div class="grid">
+            <section class="card col-6" aria-labelledby="t-mensal">
+              <h2 id="t-mensal">Entradas × saídas por mês</h2>
+              <p class="muted peq">Últimos 12 meses · linha = resultado</p>
+              <div class="chart-wrap"><canvas id="g-mensal" role="img" aria-label="Entradas e saídas por mês"></canvas></div>
+            </section>
+            <section class="card col-6" aria-labelledby="t-ritmo">
+              <h2 id="t-ritmo">Ritmo do mês</h2>
+              <p class="muted peq">Gasto acumulado: mês atual × anterior × média dos 3 meses anteriores</p>
+              <div class="chart-wrap"><canvas id="g-ritmo" role="img" aria-label="Ritmo de gastos do mês"></canvas></div>
+            </section>
+          </div>
+
+          <section class="card" aria-labelledby="t-cat">
+            <h2 id="t-cat">Gastos por categoria</h2>
+            <p class="muted peq">Toque em uma barra para filtrar a tabela de transações</p>
+            <div id="cat-wrap" class="chart-wrap chart-h"><canvas id="g-cat" role="img" aria-label="Gastos por categoria"></canvas></div>
+          </section>
+
+          <div class="grid">
+            <section class="card col-6" aria-labelledby="t-var">
+              <h2 id="t-var">Variação por categoria</h2>
+              <p class="muted peq">vs. período anterior · <span class="neg-txt">▲ vermelho = gastou mais</span> · <span class="pos-txt">▼ verde = gastou menos</span></p>
+              <div id="var-wrap" class="chart-wrap chart-h"><canvas id="g-var" role="img" aria-label="Variação por categoria"></canvas></div>
+            </section>
+            <section class="card col-6" aria-labelledby="t-sem">
+              <h2 id="t-sem">Gasto por dia da semana</h2>
+              <p class="muted peq">Média por dia</p>
+              <div class="chart-wrap"><canvas id="g-sem" role="img" aria-label="Gasto médio por dia da semana"></canvas></div>
+            </section>
+          </div>
+
+          <section class="card" aria-labelledby="t-cal">
+            <h2 id="t-cal">Calendário de gastos</h2>
+            <div class="cal-scroll">
+              <div id="cal-meses" class="cal-meses" aria-hidden="true"></div>
+              <div id="cal" class="cal" role="img" tabindex="0" aria-label="Calendário de gastos"></div>
+            </div>
+            <div class="cal-rodape">
+              <p id="cal-info" class="cal-info muted" aria-live="polite">Passe o mouse ou toque em um dia.</p>
+              <p class="legenda" aria-hidden="true"><span>Menos</span><i class="n0"></i><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="n4"></i><span>Mais</span></p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Tabela -->
+        <section class="card" aria-labelledby="t-tab" id="sec-tabela">
+          <div class="tab-cab">
+            <h2 id="t-tab">Transações</h2>
+            <button id="btn-csv" class="btn" type="button">Exportar CSV</button>
+          </div>
+          <div class="filtros-tab">
+            <label class="sr-only" for="busca">Buscar</label>
+            <input id="busca" type="search" placeholder="Buscar descrição ou categoria" autocomplete="off">
+            <label class="sr-only" for="f-tipo">Tipo</label>
+            <select id="f-tipo"><option value="">Todos os tipos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select>
+            <label class="sr-only" for="f-cat">Categoria</label>
+            <select id="f-cat"><option value="">Todas as categorias</option></select>
+            <label class="sr-only" for="ordenar">Ordenar por</label>
+            <select id="ordenar" class="so-mobile">
+              <option value="data:desc">Data (recentes)</option><option value="data:asc">Data (antigas)</option>
+              <option value="valor:desc">Valor (maior)</option><option value="valor:asc">Valor (menor)</option>
+              <option value="categoria:asc">Categoria (A–Z)</option>
+            </select>
+          </div>
+          <div class="tabela-wrap">
+            <table class="tabela">
+              <thead><tr>
+                <th scope="col" data-col="data"><button type="button" class="th-btn" data-sort="data">Data</button></th>
+                <th scope="col" data-col="tipo"><button type="button" class="th-btn" data-sort="tipo">Tipo</button></th>
+                <th scope="col" data-col="categoria"><button type="button" class="th-btn" data-sort="categoria">Categoria</button></th>
+                <th scope="col" data-col="descricao"><button type="button" class="th-btn" data-sort="descricao">Descrição</button></th>
+                <th scope="col" data-col="valor" class="num-col"><button type="button" class="th-btn" data-sort="valor">Valor</button></th>
+              </tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <p id="tab-vazia" class="muted centro" hidden>Nenhuma transação com esses filtros.</p>
+          <div class="pag">
+            <button id="pag-ant" class="btn" type="button">‹ Anterior</button>
+            <span id="pag-info" class="muted" aria-live="polite"></span>
+            <button id="pag-prox" class="btn" type="button">Próxima ›</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- vazio -->
+      <section id="vazio" class="card estado" hidden>
+        <h2>Nada por aqui neste período</h2>
+        <p class="muted">Não há transações entre <strong id="vazio-periodo"></strong>. Registre uma mandando uma mensagem para o bot no Telegram, por exemplo:</p>
+        <p class="exemplo">“gastei 32 reais no mercado”</p>
+        <p class="muted peq">Ou escolha outro período no filtro acima.</p>
+      </section>
+    </main>
+
+    <footer class="rodape">
+      <button id="btn-atualizar" class="btn" type="button">↻ Atualizar</button>
+      <span id="atualizado" class="muted" aria-live="polite"></span>
+      <button id="btn-sair" class="btn btn-fantasma" type="button">Sair</button>
+    </footer>
+  </div>
+</body>
+</html>
