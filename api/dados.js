@@ -61,6 +61,9 @@ function linhasLeves(usuarioId) {
   ).then((rows) => rows.map((r) => ({ tipo: r.tipo, valor: Number(r.valor), data: r.data_transacao })));
 }
 
+// Gustavo Viscondi (tabela usuarios). Fixo no servidor: nunca vem do cliente nem do ambiente.
+const USUARIO_ID = 59;
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') {
@@ -69,9 +72,8 @@ module.exports = async (req, res) => {
   }
   if (!sessaoValida(req)) return res.status(401).json({ erro: 'Não autenticado' });
 
-  const usuarioId = Number(process.env.USUARIO_ID);
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      !Number.isInteger(usuarioId) || usuarioId <= 0) {
+  const usuarioId = USUARIO_ID;
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ erro: 'Servidor não configurado' });
   }
 

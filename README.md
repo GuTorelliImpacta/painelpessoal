@@ -20,7 +20,7 @@ test/                 testes (Node, sem framework): npm test
 ## Como funciona a segurança
 
 - O navegador **nunca** recebe chave do Supabase. Só `/api/dados` fala com o banco, no servidor, usando a `service_role key`.
-- O `usuario_id` vem da variável `USUARIO_ID`, nunca do cliente. Parâmetros de data são validados (ISO real).
+- O `usuario_id` (59) é fixo em `api/dados.js`, nunca vem do cliente. Parâmetros de data são validados (ISO real).
 - Sessão: cookie `HttpOnly; Secure; SameSite=Strict`, assinado (HMAC-SHA256), 30 dias. Senha comparada em tempo constante; senha errada leva ~800 ms para responder 401.
 - RLS permanece ativo e sem políticas: **não crie políticas e não use a chave anon**.
 - O painel só executa `SELECT` (na view `vw_transacoes`). Nada é escrito no banco.
@@ -44,7 +44,6 @@ test/                 testes (Node, sem framework): npm test
 |---|---|---|
 | `SUPABASE_URL` | URL do projeto | `https://yjbqdroieyshlzleazwl.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | chave `service_role` (secreta) | veja abaixo |
-| `USUARIO_ID` | seu id na tabela `usuarios` | `3` |
 | `PAINEL_SENHA` | senha de acesso ao painel | escolha uma longa |
 | `SESSION_SECRET` | segredo de assinatura do cookie (≥ 32 caracteres) | `openssl rand -hex 32` |
 

@@ -9,12 +9,11 @@ process.env.PAINEL_SENHA = SENHA;
 process.env.SESSION_SECRET = 'a'.repeat(64);
 process.env.SUPABASE_URL = 'http://supabase.invalid';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'CHAVE-SECRETA-NAO-VAZAR';
-process.env.USUARIO_ID = '3';
 
 const LINHAS = [
-  { id: 1, usuario_id: 3, tipo: 'entrada', valor: 2000, categoria: 'Salário', descricao: 'Salário', data_transacao: '2026-10-15' },
-  { id: 2, usuario_id: 3, tipo: 'saida', valor: 32, categoria: 'Mercado', descricao: 'Compras', data_transacao: '2026-10-15' },
-  { id: 3, usuario_id: 3, tipo: 'entrada', valor: 32, categoria: 'Outros', descricao: 'Pix', data_transacao: '2026-10-15' },
+  { id: 1, usuario_id: 59, tipo: 'entrada', valor: 2000, categoria: 'Salário', descricao: 'Salário', data_transacao: '2026-10-15' },
+  { id: 2, usuario_id: 59, tipo: 'saida', valor: 32, categoria: 'Mercado', descricao: 'Compras', data_transacao: '2026-10-15' },
+  { id: 3, usuario_id: 59, tipo: 'entrada', valor: 32, categoria: 'Outros', descricao: 'Pix', data_transacao: '2026-10-15' },
   { id: 4, usuario_id: 99, tipo: 'entrada', valor: 100000, categoria: 'Outro usuário', descricao: 'NÃO DEVE APARECER', data_transacao: '2026-10-10' },
 ];
 const consultas = [];
@@ -91,7 +90,7 @@ test('/api/dados devolve só o usuário configurado, sem vazar chaves', async ()
   consultas.length = 0;
   const r = await get({ inicio: '2026-10-01', fim: '2026-10-31' }, cookie);
   assert.equal(r.code, 200);
-  assert.ok(consultas.length >= 3 && consultas.every(([, c, v]) => c === 'usuario_id' && v === 3));
+  assert.ok(consultas.length >= 3 && consultas.every(([, c, v]) => c === 'usuario_id' && v === 59));
   assert.equal(r.body.transacoes.length, 3);
   assert.equal(r.body.saldo_total, 2000);       // 2000 - 32 + 32; o usuário 99 fica de fora
   assert.equal(r.headers['cache-control'], 'no-store');
